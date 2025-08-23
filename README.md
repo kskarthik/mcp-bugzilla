@@ -1,4 +1,4 @@
-MCP Server For Bugzilla
+# MCP Server For Bugzilla
 
 Provides a few utilities to interact with a bugzilla instance.
 
@@ -20,7 +20,7 @@ uv run server.py
 
 Starts the http server at `localhost:8000/mcp`
 
-# Required Headers
+# Required Client HTTP Headers
 
 - `api_key`: Bugzilla user API key
 - `bugzilla_server`: Bugzilla instance (eg: bugzilla.opensuse.org)
