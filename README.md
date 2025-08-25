@@ -22,8 +22,13 @@ Starts the http server at `localhost:8000/mcp`
 
 # Required Client HTTP Headers
 
-- `api_key`: Bugzilla user API key
-- `bugzilla_server`: Bugzilla instance (eg: bugzilla.opensuse.org)
+- `api_key`: Bugzilla user's API key
+
+# Environment Variables
+
+`BUGZILLA_SERVER` must be set. Else, The program will exit with non success status code
+
+ Example: `bugzilla.opensuse.org`
 
 # License
 

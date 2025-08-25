@@ -10,6 +10,8 @@ License: AGPLv3
 """
 
 import logging
+import os
+import sys
 from fastmcp import FastMCP
 import bugzilla
 from fastmcp.server.dependencies import get_http_headers
@@ -27,8 +29,10 @@ log = logging.getLogger("bz-mcp")
 # serves as a delimiter when converting the bug comments of an api response as a string
 comment_delimiter = "+-+-+"
 
-mcp = FastMCP("Bugzilla")
+# sets the bugzilla server
+base_url = os.getenv("BUGZILLA_SERVER")
 
+mcp = FastMCP("Bugzilla")
 
 # check for the required headers which contain the api_key & bugzilla_server keys
 # these are required by all the tools & prompts to make the api calls
@@ -40,13 +44,13 @@ class ValidateHeaders(Middleware):
 
         headers = get_http_headers()
 
-        if "api_key" in headers.keys() and "bugzilla_server" in headers.keys():
-            log.debug(headers)
+        if "api_key" in headers.keys():
 
             global bz
+
             # all the tools & prompts will use this for making api calls
             bz = bugzilla.Bugzilla(
-                url=headers["bugzilla_server"], api_key=headers["api_key"]
+                url=base_url, api_key=headers["api_key"]
             )
 
             log.info("Headers Validated")
@@ -130,16 +134,21 @@ def summarize_bug_comments(id: int) -> str:
     You are an expert in summarizing bugzilla comments.
     Rules to follow:
     - Each comment block below is delimited by "${comment_delimiter}"
-    - Each comment block contains the Username:  Date: Comment: CommentID: fields which are self explanatory
-    - Date: field must be in human readable format
+    - Each comment block contains the Username:  Date: Comment: fields which are self explanatory
     - Summary must be well structured & eye catching
     - Your entire response must be in GitHub-flavored Markdown. Do not use raw HTML
     - Mention usernames & dates wherever relevant.
+    - Date: field must be in human readable format
     - Usernames must be bold italic (***username***) dates must be bold (**date**)
      {comment_delimiter}
-     {comments}`;"""
+     {comments}`;""".strip()
     except Exception:
         raise PromptError("Summarize Comments Failed")
 
+# exit if the env variable is not set
+if base_url is None:
+        log.critical("env `BUGZILLA_SERVER` must be set. Exiting")
+        sys.exit(1)
 
+# start the MCP server
 mcp.run(transport="http")
