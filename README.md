@@ -26,10 +26,14 @@ Starts the http server at `localhost:8000/mcp`
 
 # Environment Variables
 
-`BUGZILLA_SERVER` must be set. Else, The program will exit with non success status code
+`BUGZILLA_SERVER` must be set. Else, The program will exit with a non-success status code.
 
- Example: `bugzilla.opensuse.org`
+Example:
+
+```
+export BUGZILLA_SERVER='https://bugzilla.opensuse.org'
+```
 
 # License
 
-This project is licensed under `AGPLv3`
+This project is licensed under `AGPLv3`. You can obtain a copy from https://www.gnu.org/licenses/agpl-3.0.txt

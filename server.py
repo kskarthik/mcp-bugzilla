@@ -9,22 +9,14 @@ Author: Sai Karthik <kskarthik@disroot.org>
 License: AGPLv3
 """
 
-import logging
 import os
 import sys
 from fastmcp import FastMCP
-import bugzilla
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from fastmcp.exceptions import PromptError, ToolError, ValidationError
-
-# logging config
-logging.basicConfig(
-    format="[%(levelname)s]: %(message)s",
-    level=logging.INFO,
-)
-
-log = logging.getLogger("bz-mcp")
+from mcp_utils import Bugzilla, mcp_log
+from typing import Any
 
 # serves as a delimiter when converting the bug comments of an api response as a string
 comment_delimiter = "+-+-+"
@@ -40,7 +32,7 @@ class ValidateHeaders(Middleware):
     """Validate incoming HTTP headers"""
 
     async def on_request(self, context: MiddlewareContext, call_next):
-        log.info("Validating Headers")
+        mcp_log.info("Validating Headers")
 
         headers = get_http_headers()
 
@@ -49,17 +41,17 @@ class ValidateHeaders(Middleware):
             global bz
 
             # all the tools & prompts will use this for making api calls
-            bz = bugzilla.Bugzilla(
+            bz = Bugzilla(
                 url=base_url, api_key=headers["api_key"]
             )
 
-            log.info("Headers Validated")
+            mcp_log.info("Headers Validated")
 
             result = call_next(context)
 
             return await result
         else:
-            raise ValidationError("Required headers not set")
+            raise ValidationError("`api_key` is header is required")
 
 
 mcp.add_middleware(ValidateHeaders())
@@ -68,9 +60,9 @@ mcp.add_middleware(ValidateHeaders())
 def bug_comments_string(id: int) -> str:
     """Utility which returns the comments of given bug ID as a string"""
     try:
-        bug = bz.getbug(id)
+        comments = bz.bug_comments(id)
         c = ""
-        for comment in bug.getcomments():
+        for comment in comments:
             # extract username from the email id
             username = comment["creator"].split("@")[0]
 
@@ -89,30 +81,23 @@ def bug_comments_string(id: int) -> str:
 
 
 @mcp.tool()
-def bug_info(id: int) -> str:
+def bug_info(id: int) -> dict[str, Any]:
     """Returns the information of a given bug"""
 
-    log.info("tool: bug_info() is invoked")
+    mcp_log.info("tool: bug_info() is invoked")
 
     try:
-        bug = bz.getbug(id)
-
-        return f"""
-        Product: {bug.product}
-        Component: {bug.component}
-        Status: {bug.status}
-        Resolution: {bug.resolution}
-        Summary: {bug.summary}"""
+        return bz.bug_info(id)
 
     except Exception:
         raise ToolError("Failed to fetch bug info")
 
 
 @mcp.tool()
-def bug_comments(id: int) -> str:
+def bug_comments(id: int):
     """Returns the comments of given bug ID"""
 
-    log.info("tool: bug_comments() is invoked")
+    mcp_log.info("tool: bug_comments() is invoked")
 
     try:
         return bug_comments_string(id)
@@ -124,7 +109,7 @@ def bug_comments(id: int) -> str:
 def summarize_bug_comments(id: int) -> str:
     """Summarizes all the comments of a bug"""
 
-    log.info("prompt: summarize_bug_comments() is invoked")
+    mcp_log.info("prompt: summarize_bug_comments() is invoked")
 
     comments: str = ""
 
@@ -147,7 +132,7 @@ def summarize_bug_comments(id: int) -> str:
 
 # exit if the env variable is not set
 if base_url is None:
-        log.critical("env `BUGZILLA_SERVER` must be set. Exiting")
+        mcp_log.critical("env `BUGZILLA_SERVER` must be set. Exiting")
         sys.exit(1)
 
 # start the MCP server
