@@ -1,4 +1,3 @@
-import os
 from typing import Any
 import httpx
 import logging
@@ -16,6 +15,7 @@ class Bugzilla:
     """Bugzilla API class"""
 
     def __init__(self, url: str, api_key: str):
+
         self.base_url: str = url + "/rest"
         self.api_key: str = api_key
         # request params sent for each request
@@ -27,7 +27,7 @@ class Bugzilla:
         r = httpx.get(url=f"{self.base_url}/bug/{bug_id}", params=self.params)
 
         if r.status_code != 200:
-            raise httpx.ConnectError(f"Failed to fetch API with Status code: {r.status_code}")
+            raise httpx.TransportError(f"Failed to fetch API with Status code: {r.status_code}")
 
         return r.json()["bugs"][0]
 
@@ -37,6 +37,6 @@ class Bugzilla:
         r = httpx.get(url=f"{self.base_url}/bug/{bug_id}/comment", params=self.params)
 
         if r.status_code != 200:
-            raise httpx.ConnectError(f"Failed to fetch API with Status code: {r.status_code}")
+            raise httpx.TransportError(f"Failed to fetch API with Status code: {r.status_code}")
 
         return r.json()["bugs"][f"{bug_id}"]["comments"]
