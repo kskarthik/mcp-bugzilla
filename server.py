@@ -58,8 +58,8 @@ def bug_information(id: int) -> dict[str, Any]:
     try:
         return bz.bug_info(id)
 
-    except Exception:
-        raise ToolError("Failed to fetch bug info")
+    except Exception as e:
+        raise ToolError(f"Failed to fetch bug info\nReason: {e}")
 
 @mcp.tool()
 def bug_comments(id: int):

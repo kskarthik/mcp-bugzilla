@@ -29,7 +29,6 @@ Starts the http server at `localhost:8000/mcp`
 `BUGZILLA_SERVER` must be set. Else, The program will exit with a non-success status code.
 
 Example:
-
 ```
 export BUGZILLA_SERVER='https://bugzilla.opensuse.org'
 ```
