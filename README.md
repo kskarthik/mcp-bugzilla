@@ -4,12 +4,13 @@ Provides a few utilities to interact with a bugzilla instance.
 
 Tools:
 
-- Get Bug Information
-- Get Bug comments
+- `bug_information`: Get the bug information
+- `bug_comments`: Fetches all bug comments (including private comments)
+- `add_comment`: Add a bug comment. Default is public. Can be optionally set to private
 
 Prompts:
 
-- summarize_bug_comments
+- `summarize_bug_comments`: Summarize all the comments of a give bug id
 
 # Installation
 
@@ -18,11 +19,11 @@ uv sync
 uv run server.py
 ```
 
-Starts the http server at `localhost:8000/mcp`
+Starts the `http` server at `http://127.0.0.1:8000/mcp/`
 
 # Required Client HTTP Headers
 
-- `api_key`: Bugzilla user's API key
+- `api_key`: Bugzilla user's API key. To create one, refer the [official doc](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication)
 
 # Environment Variables
 

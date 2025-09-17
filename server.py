@@ -20,6 +20,7 @@ base_url = os.getenv("BUGZILLA_SERVER")
 
 mcp = FastMCP("Bugzilla")
 
+
 # check for the required headers which contain the api_key & bugzilla_server keys
 # these are required by all the tools & prompts to make the api calls
 class ValidateHeaders(Middleware):
@@ -31,13 +32,10 @@ class ValidateHeaders(Middleware):
         headers = get_http_headers()
 
         if "api_key" in headers.keys():
-
             global bz
 
             # all the tools & prompts will use this for making api calls
-            bz = Bugzilla(
-                url=base_url, api_key=headers["api_key"]
-            )
+            bz = Bugzilla(url=base_url, api_key=headers["api_key"])
 
             mcp_log.info("Headers Validated")
 
@@ -47,7 +45,9 @@ class ValidateHeaders(Middleware):
         else:
             raise ValidationError("`api_key` is header is required")
 
+
 mcp.add_middleware(ValidateHeaders())
+
 
 @mcp.tool()
 def bug_information(id: int) -> dict[str, Any]:
@@ -61,6 +61,7 @@ def bug_information(id: int) -> dict[str, Any]:
     except Exception as e:
         raise ToolError(f"Failed to fetch bug info\nReason: {e}")
 
+
 @mcp.tool()
 def bug_comments(id: int):
     """Returns the comments of given bugzilla bug ID"""
@@ -73,6 +74,16 @@ def bug_comments(id: int):
     except Exception as e:
         raise ToolError(f"Failed to fetch bug comments\nReason: {e}")
 
+
+@mcp.tool()
+def add_comment(bug_id: int, comment: str, is_private: bool = False) -> dict[str, int]:
+    """Add a comment to a bug. It can optionally be private. If success, returns the created comment id."""
+    try:
+        return bz.add_comment(bug_id, comment, is_private)
+    except Exception as e:
+        raise ToolError(f"Failed to create a comment\n{e}")
+
+
 @mcp.prompt()
 def summarize_bug_comments(id: int) -> str:
     """Summarizes all the comments of a bug"""
@@ -80,7 +91,6 @@ def summarize_bug_comments(id: int) -> str:
     mcp_log.info("prompt: summarize_bug_comments() is invoked")
 
     try:
-
         comments = bz.bug_comments(id)
 
         return f"""
@@ -95,10 +105,11 @@ def summarize_bug_comments(id: int) -> str:
     except Exception as e:
         raise PromptError(f"Summarize Comments Failed\nReason: {e}")
 
+
 # exit if the env variable is not set
 if base_url is None:
-        mcp_log.critical("env `BUGZILLA_SERVER` must be set. Exiting")
-        sys.exit(1)
+    mcp_log.critical("env `BUGZILLA_SERVER` must be set. Exiting")
+    sys.exit(1)
 
 # start the MCP server
 mcp.run(transport="http")
