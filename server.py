@@ -85,10 +85,10 @@ def add_comment(bug_id: int, comment: str, is_private: bool = False) -> dict[str
         raise ToolError(f"Failed to create a comment\n{e}")
 
 @mcp.tool()
-def bugs_quicksearch(query: str, limit: int = 100, offset: int = 0):
+def bugs_quicksearch(query: str, limit: int = 50, offset: int = 0) -> list[Any]:
     """Search bugs using bugzilla's quicksearch syntax"""
 
-    mcp_log.info("tool: bug_quicksearch() is invoked")
+    mcp_log.info("tool: bugs_quicksearch() is invoked")
  
     tool_params = bz.params
     tool_params["quicksearch"] = query
@@ -101,7 +101,7 @@ def bugs_quicksearch(query: str, limit: int = 100, offset: int = 0):
         mcp_log.error(f"{r.json()}")
         raise ToolError(f"Search failed with status code {r.status_code}")
 
-    return r.json()
+    return r.json()["bugs"]
 
 @mcp.prompt()
 def summarize_bug_comments(id: int) -> str:
