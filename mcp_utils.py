@@ -19,7 +19,7 @@ class Bugzilla:
         self.base_url: str = url + "/rest"
         self.api_key: str = api_key
         # request params sent for each request
-        self.params: dict[str, str] = {"api_key": self.api_key}
+        self.params: dict[str, Any] = {"api_key": self.api_key}
 
     def bug_info(self, bug_id: int) -> dict[str, Any]:
         """get information about a given bug"""

@@ -12,6 +12,7 @@ from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.middleware import Middleware, MiddlewareContext
 from fastmcp.exceptions import PromptError, ToolError, ValidationError
+import httpx
 from mcp_utils import Bugzilla, mcp_log
 from typing import Any
 
@@ -83,6 +84,24 @@ def add_comment(bug_id: int, comment: str, is_private: bool = False) -> dict[str
     except Exception as e:
         raise ToolError(f"Failed to create a comment\n{e}")
 
+@mcp.tool()
+def bugs_quicksearch(query: str, limit: int = 50, offset: int = 0) -> list[Any]:
+    """Search bugs using bugzilla's quicksearch syntax"""
+
+    mcp_log.info("tool: bugs_quicksearch() is invoked")
+ 
+    tool_params = bz.params
+    tool_params["quicksearch"] = query
+    tool_params["limit"] = limit
+    tool_params["offset"] = offset
+
+    r = httpx.get(f"{bz.base_url}/bug", params=tool_params)
+
+    if r.status_code != 200:
+        mcp_log.error(f"{r.json()}")
+        raise ToolError(f"Search failed with status code {r.status_code}")
+
+    return r.json()["bugs"]
 
 @mcp.prompt()
 def summarize_bug_comments(id: int) -> str:
