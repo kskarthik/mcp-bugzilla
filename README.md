@@ -7,10 +7,11 @@ Tools:
 - `bug_information`: Get the bug information
 - `bug_comments`: Fetches all bug comments (including private comments)
 - `add_comment`: Add a bug comment. Default is public. Can be optionally set to private
+- `bugs_quicksearch`: Searches for bugs matching the provided query using bugzilla's [quicksearch](https://bugzilla.readthedocs.io/en/latest/using/finding.html#quicksearch) feature. Default limit is set to 50 results. Can be increased, But beware that it can cost you more tokens & could fill up your context window fast. Also supports the `offset` value for paginating the results.
 
 Prompts:
 
-- `summarize_bug_comments`: Summarize all the comments of a give bug id
+- `summarize_bug_comments`: Summarize all the comments of a given bug id in detail
 
 # Installation
 
