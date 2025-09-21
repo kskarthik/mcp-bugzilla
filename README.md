@@ -37,4 +37,4 @@ export BUGZILLA_SERVER='https://bugzilla.opensuse.org'
 
 # License
 
-This project is licensed under `AGPLv3`. You can obtain a copy from https://www.gnu.org/licenses/agpl-3.0.txt
+This project is licensed under `Apache 2.0`. You can obtain a copy from https://www.apache.org/licenses/LICENSE-2.0.txt

@@ -3,7 +3,7 @@ This is an MCP server for bugzilla which provides a few helpful
 functions to assist the LLMs with required context
 
 Author: Sai Karthik <kskarthik@disroot.org>
-License: AGPLv3
+License: Apache 2.0
 """
 
 import os
