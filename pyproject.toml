@@ -1,10 +1,10 @@
 [project]
 name = "mcp-bugzilla"
-version = "0.3.1"
+version = "0.4.0"
 description = "MCP server for Bugzilla"
 readme = "README.md"
 requires-python = ">=3.13"
 
 dependencies = [
-    "fastmcp==2.12.3",
+    "fastmcp==2.12.5",
 ]

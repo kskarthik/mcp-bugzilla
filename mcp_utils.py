@@ -5,6 +5,7 @@ functions to assist the LLMs with required context
 Author: Sai Karthik <kskarthik@disroot.org>
 License: Apache 2.0
 """
+
 from typing import Any
 import httpx
 import logging
@@ -12,7 +13,7 @@ import logging
 # logging config
 logging.basicConfig(
     format="[%(levelname)s]: %(message)s",
-    level=logging.INFO,
+    level=logging.ERROR,
 )
 
 mcp_log = logging.getLogger("bugzilla-mcp")
@@ -23,7 +24,8 @@ class Bugzilla:
     """Bugzilla API class"""
 
     def __init__(self, url: str, api_key: str):
-        self.base_url: str = url + "/rest"
+        self.api_url: str = url + "/rest"
+        self.base_url: str = url
         self.api_key: str = api_key
         # request params sent for each request
         self.params: dict[str, Any] = {"api_key": self.api_key}
@@ -31,7 +33,7 @@ class Bugzilla:
     def bug_info(self, bug_id: int) -> dict[str, Any]:
         """get information about a given bug"""
 
-        r = httpx.get(url=f"{self.base_url}/bug/{bug_id}", params=self.params)
+        r = httpx.get(url=f"{self.api_url}/bug/{bug_id}", params=self.params)
 
         if r.status_code != 200:
             raise httpx.TransportError(
@@ -43,7 +45,7 @@ class Bugzilla:
     def bug_comments(self, bug_id: int) -> dict[str, Any]:
         """Get comments of a bug"""
 
-        r = httpx.get(url=f"{self.base_url}/bug/{bug_id}/comment", params=self.params)
+        r = httpx.get(url=f"{self.api_url}/bug/{bug_id}/comment", params=self.params)
 
         if r.status_code != 200:
             raise httpx.TransportError(
@@ -60,7 +62,7 @@ class Bugzilla:
         c = {"comment": comment, "is_private": is_private}
 
         r = httpx.post(
-            url=f"{self.base_url}/bug/{bug_id}/comment", params=self.params, json=c
+            url=f"{self.api_url}/bug/{bug_id}/comment", params=self.params, json=c
         )
 
         if r.status_code != 201:
