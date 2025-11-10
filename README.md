@@ -34,13 +34,17 @@ Currently, one prompt is available to assist with common tasks:
 
 To set up and run the Bugzilla MCP Server, follow these steps:
 
-### Installation
+## Installation
 
-1.  **Clone the repository (if applicable):**
-    ```bash
-    # Replace with actual clone command if this is a repo
-    ```
-2.  **Install dependencies and lock them:**
+### Docker / Podman
+
+Official docker repo: https://hub.docker.com/r/kskarthik/mcp-bugzilla/
+
+### From Source
+
+1. Clone this repo
+
+2. **Install dependencies and lock them:**
     ```bash
     uv sync
     ```
