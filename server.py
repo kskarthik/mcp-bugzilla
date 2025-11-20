@@ -20,6 +20,7 @@ from typing import Any
 # sets the bugzilla server
 base_url = os.getenv("BUGZILLA_SERVER")
 # set the server port
+mcp_host = os.getenv("MCP_HOST", "127.0.0.1")
 mcp_port = int(os.getenv("MCP_PORT", "8000"))
 
 mcp = FastMCP("Bugzilla")
@@ -197,4 +198,4 @@ if base_url is None:
     sys.exit(1)
 
 # start the MCP server
-mcp.run(transport="http", port=mcp_port)
+mcp.run(transport="http", host=mcp_host, port=mcp_port)
