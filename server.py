@@ -56,10 +56,12 @@ mcp.add_middleware(ValidateHeaders())
 def bug_info(id: int) -> dict[str, Any]:
     """Returns the entire information about a given bugzilla bug id"""
 
-    mcp_log.debug("tool: bug_info() is invoked")
+    mcp_log.info(f"[LLM-REQ] bug_info(id={id})")
 
     try:
-        return bz.bug_info(id)
+        result = bz.bug_info(id)
+        mcp_log.info(f"[LLM-RES] {result}")
+        return result
 
     except Exception as e:
         raise ToolError(f"Failed to fetch bug info\nReason: {e}")
@@ -72,12 +74,13 @@ def bug_comments(id: int, include_private_comments: bool = False):
     but can be explicitely requested
     """
 
-    mcp_log.debug("tool: bug_comments() is invoked")
+    mcp_log.info(f"[LLM-REQ] bug_comments(id={id}, include_private_comments={include_private_comments})")
 
     try:
         all_comments = bz.bug_comments(id)
 
         if include_private_comments:
+            mcp_log.info(f"[LLM-RES] Returning {len(all_comments)} comments (including private)")
             return all_comments
 
         public_comments = []
@@ -86,6 +89,7 @@ def bug_comments(id: int, include_private_comments: bool = False):
             if not comment["is_private"]:
                 public_comments.append(comment)
 
+        mcp_log.info(f"[LLM-RES] Returning {len(public_comments)} public comments")
         return public_comments
 
     except Exception as e:
@@ -95,14 +99,17 @@ def bug_comments(id: int, include_private_comments: bool = False):
 @mcp.tool()
 def add_comment(bug_id: int, comment: str, is_private: bool = False) -> dict[str, int]:
     """Add a comment to a bug. It can optionally be private. If success, returns the created comment id."""
+    mcp_log.info(f"[LLM-REQ] add_comment(bug_id={bug_id}, comment='{comment}', is_private={is_private})")
     try:
-        return bz.add_comment(bug_id, comment, is_private)
+        result = bz.add_comment(bug_id, comment, is_private)
+        mcp_log.info(f"[LLM-RES] {result}")
+        return result
     except Exception as e:
         raise ToolError(f"Failed to create a comment\n{e}")
 
 
 @mcp.tool()
-def bugs_quicksearch(query: str, limit: int = 50, offset: int = 0) -> list[Any]:
+def bugs_quicksearch(query: str, limit: int = 10, offset: int = 0) -> list[Any]:
     """Search bugs using bugzilla's quicksearch syntax
 
     To reduce the token limit & response time, only returns a subset of fields for each bug
@@ -110,7 +117,7 @@ def bugs_quicksearch(query: str, limit: int = 50, offset: int = 0) -> list[Any]:
     The user can query full details of each bug using the bug_info tool
     """
 
-    mcp_log.debug("tool: bugs_quicksearch() is invoked")
+    mcp_log.info(f"[LLM-REQ] bugs_quicksearch(query='{query}', limit={limit}, offset={offset})")
 
     tool_params = bz.params
     tool_params["quicksearch"] = query
@@ -141,6 +148,7 @@ def bugs_quicksearch(query: str, limit: int = 50, offset: int = 0) -> list[Any]:
 
         bugs_with_essential_fields.append(b)
 
+    mcp_log.info(f"[LLM-RES] Found {len(bugs_with_essential_fields)} bugs")
     return bugs_with_essential_fields
 
 
@@ -149,7 +157,7 @@ def learn_quicksearch_syntax() -> str:
     """Access the documentation of the bugzilla quicksearch syntax.
     LLM can learn using this tool. Response is in HTML"""
 
-    mcp_log.debug("tool: learn_quicksearch_syntax is invoked")
+    mcp_log.info("[LLM-REQ] learn_quicksearch_syntax()")
 
     r = httpx.get(f"{bz.base_url}/page.cgi?id=quicksearch.html")
 
@@ -158,6 +166,7 @@ def learn_quicksearch_syntax() -> str:
             f"Failed to fetch bugzilla quicksearch_syntax with status code {r.status_code}"
         )
 
+    mcp_log.info(f"[LLM-RES] Fetched {len(r.text)} chars of documentation")
     return r.text
 
 @mcp.tool()
@@ -174,12 +183,12 @@ def bug_url(bug_id: int) -> str:
 def summarize_bug_comments(id: int) -> str:
     """Summarizes all the comments of a bug"""
 
-    mcp_log.debug("prompt: summarize_bug_comments() is invoked")
+    mcp_log.info(f"[LLM-REQ] summarize_bug_comments(id={id})")
 
     try:
         comments = bz.bug_comments(id)
 
-        return f"""
+        summary_prompt = f"""
     You are an expert in summarizing bugzilla comments.
     Rules to follow:
     - Comments are in JSON
@@ -187,6 +196,9 @@ def summarize_bug_comments(id: int) -> str:
     - Mention usernames & dates wherever relevant.
     - date field must be in human readable format
     - Usernames must be bold italic (***username***) dates must be bold (**date**)\n{comments}`;""".strip()
+        
+        mcp_log.info(f"[LLM-RES] Generated prompt of length {len(summary_prompt)}")
+        return summary_prompt
 
     except Exception as e:
         raise PromptError(f"Summarize Comments Failed\nReason: {e}")
@@ -197,5 +209,6 @@ if base_url is None:
     mcp_log.critical("env `BUGZILLA_SERVER` must be set. Exiting")
     sys.exit(1)
 
-# start the MCP server
-mcp.run(transport="http", host=mcp_host, port=mcp_port)
+if __name__ == "__main__":
+    # start the MCP server
+    mcp.run(transport="http", host=mcp_host, port=mcp_port)
