@@ -68,6 +68,8 @@ The server requires one critical environment variable to be set:
     ```bash
     export BUGZILLA_SERVER='https://bugzilla.opensuse.org'
     ```
+- `MCP_HOST`: Set custom host name. Default: `127.0.0.1`
+- `MCP_PORT`: Set custom port. Default `8000`
 
 ## License
 
