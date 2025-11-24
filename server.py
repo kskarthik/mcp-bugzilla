@@ -8,7 +8,7 @@ License: Apache 2.0
 
 import os
 import sys
-print("DEBUG: Server starting...", file=sys.stderr)
+
 from fastmcp import FastMCP
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.middleware import Middleware, MiddlewareContext
@@ -109,7 +109,7 @@ def add_comment(bug_id: int, comment: str, is_private: bool = False) -> dict[str
 
 
 @mcp.tool()
-def bugs_quicksearch(query: str, limit: int = 10, offset: int = 0) -> list[Any]:
+def bugs_quicksearch(query: str, limit: int = 50, offset: int = 0) -> list[Any]:
     """Search bugs using bugzilla's quicksearch syntax
 
     To reduce the token limit & response time, only returns a subset of fields for each bug
