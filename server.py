@@ -124,7 +124,7 @@ def bugs_quicksearch(query: str, limit: int = 10, offset: int = 0) -> list[Any]:
     tool_params["limit"] = limit
     tool_params["offset"] = offset
 
-    r = httpx.get(f"{bz.api_url}/bug", params=tool_params)
+    r = httpx.get(f"{bz.api_url}/bug", params=tool_params, timeout=30.0)
 
     if r.status_code != 200:
         mcp_log.error(f"{r.json()}")
