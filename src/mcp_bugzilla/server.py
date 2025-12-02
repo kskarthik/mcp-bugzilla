@@ -19,7 +19,8 @@ from .mcp_utils import Bugzilla, mcp_log
 # The FastMCP instance is created globally, but `bz` (Bugzilla client) is
 # initialized in the middleware after `BUGZILLA_SERVER` and `api_key` are known.
 mcp = FastMCP("Bugzilla")
-
+# Global dict to hold command-line arguments, populated by main() in __init__.py
+cli_args: dict[str, Any] = {}
 # Global variables for Bugzilla client, set when middleware validates headers
 bz: Bugzilla
 
@@ -182,13 +183,30 @@ def learn_quicksearch_syntax() -> str:
 @mcp.tool()
 def server_url() -> str:
     """bugzilla server's base url"""
+    mcp_log.info("[LLM-REQ] server_url()")
     return bz.base_url
 
 
 @mcp.tool()
 def bug_url(bug_id: int) -> str:
     """returns the bug url"""
+    mcp_log.info(f"[LLM-REQ] bug_url(bug_id={bug_id})")
     return f"{bz.base_url}/show_bug.cgi?id={bug_id}"
+
+
+@mcp.tool()
+def mcp_server_info() -> dict[str, Any]:
+    """Returns the args being used by the current server instance"""
+    mcp_log.info("[LLM-REQ] mcp_server_info()")
+    return cli_args
+
+
+@mcp.tool()
+def get_current_headers() -> dict[str, Any]:
+    """Returns the headers being provided by the current http request"""
+    mcp_log.info("[LLM-REQ] get_current_headers()")
+    headers = get_http_headers()
+    return get_http_headers()
 
 
 @mcp.prompt()
@@ -219,16 +237,13 @@ def summarize_bug_comments(id: int) -> str:
 base_url: str
 
 
-def start(bugzilla_server: str, host: str, port: int):
+def start():
     """
     Starts the FastMCP server for Bugzilla.
-
-    Args:
-        bugzilla_server: The base URL of the Bugzilla server.
-        host: The host address for the MCP server to listen on.
-        port: The port for the MCP server to listen on.
     """
     global base_url
-    base_url = bugzilla_server
+    base_url = cli_args["bugzilla_server"]
 
-    mcp.run(transport="http", host=host, port=port)
+    mcp.run(
+        transport="http", host=cli_args["host"], port=cli_args["port"]
+    )

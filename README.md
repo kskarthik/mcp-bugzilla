@@ -22,6 +22,10 @@ The following tools are available to interact with Bugzilla:
     *   **Returns:** A string representing the base URL.
 -   `bug_url(bug_id: int)`: Constructs and returns the direct URL to a specific bug on the Bugzilla server.
     *   **Returns:** A string representing the bug's URL.
+-   `mcp_server_info()`: Returns the arguments being used by the current server instance.
+    *   **Returns:** A dictionary of the arguments.
+-   `get_current_headers()`: Returns the headers being provided by the current http request.
+    *   **Returns:** A dictionary of the headers.
 
 ### Prompts
 
