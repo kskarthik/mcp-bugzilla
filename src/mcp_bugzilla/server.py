@@ -13,6 +13,7 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import PromptError, ToolError, ValidationError
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.middleware import Middleware, MiddlewareContext
+import importlib.metadata
 
 from .mcp_utils import Bugzilla, mcp_log
 
@@ -198,7 +199,9 @@ def bug_url(bug_id: int) -> str:
 def mcp_server_info() -> dict[str, Any]:
     """Returns the args being used by the current server instance"""
     mcp_log.info("[LLM-REQ] mcp_server_info()")
-    return cli_args
+    info = cli_args.copy()
+    info["version"] = importlib.metadata.version("mcp-bugzilla")
+    return info
 
 
 @mcp.tool()
