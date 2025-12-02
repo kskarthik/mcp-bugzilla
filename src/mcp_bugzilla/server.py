@@ -6,6 +6,7 @@ Author: Sai Karthik <kskarthik@disroot.org>
 License: Apache 2.0
 """
 
+import importlib.metadata
 from typing import Any
 
 import httpx
@@ -13,7 +14,6 @@ from fastmcp import FastMCP
 from fastmcp.exceptions import PromptError, ToolError, ValidationError
 from fastmcp.server.dependencies import get_http_headers
 from fastmcp.server.middleware import Middleware, MiddlewareContext
-import importlib.metadata
 
 from .mcp_utils import Bugzilla, mcp_log
 
@@ -208,7 +208,6 @@ def mcp_server_info() -> dict[str, Any]:
 def get_current_headers() -> dict[str, Any]:
     """Returns the headers being provided by the current http request"""
     mcp_log.info("[LLM-REQ] get_current_headers()")
-    headers = get_http_headers()
     return get_http_headers()
 
 
@@ -247,6 +246,4 @@ def start():
     global base_url
     base_url = cli_args["bugzilla_server"]
 
-    mcp.run(
-        transport="http", host=cli_args["host"], port=cli_args["port"]
-    )
+    mcp.run(transport="http", host=cli_args["host"], port=cli_args["port"])
