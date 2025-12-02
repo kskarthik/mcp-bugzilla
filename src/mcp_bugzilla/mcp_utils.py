@@ -6,10 +6,12 @@ Author: Sai Karthik <kskarthik@disroot.org>
 License: Apache 2.0
 """
 
+import logging
 import os
 from typing import Any
+
 import httpx
-import logging
+
 
 # logging config
 class ColorFormatter(logging.Formatter):
@@ -35,12 +37,13 @@ class ColorFormatter(logging.Formatter):
                 log_fmt = self.GREEN + self.FORMAT + self.RESET
             elif "[BZ-RES]" in record.msg:
                 log_fmt = self.GREEN + self.FORMAT + self.RESET
-        
+
         if record.levelno >= logging.ERROR:
-             log_fmt = self.RED + self.FORMAT + self.RESET
+            log_fmt = self.RED + self.FORMAT + self.RESET
 
         formatter = logging.Formatter(log_fmt)
         return formatter.format(record)
+
 
 handler = logging.StreamHandler()
 handler.setFormatter(ColorFormatter())
@@ -107,9 +110,7 @@ class Bugzilla:
         url = f"{self.api_url}/bug/{bug_id}/comment"
         mcp_log.info(f"[BZ-REQ] POST {url} params={self.params} json={c}")
 
-        r = httpx.post(
-            url=url, params=self.params, json=c
-        )
+        r = httpx.post(url=url, params=self.params, json=c)
 
         if r.status_code != 201:
             mcp_log.error(f"[BZ-RES] Failed: {r.status_code} {r.text}")
@@ -118,6 +119,6 @@ class Bugzilla:
             )
 
         data = r.json()
-        mcp_log.info(f"[BZ-RES] Comment added successfully")
+        mcp_log.info("[BZ-RES] Comment added successfully")
         mcp_log.debug(f"[BZ-RES] {data}")
         return data

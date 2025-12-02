@@ -6,24 +6,22 @@ Author: Sai Karthik <kskarthik@disroot.org>
 License: Apache 2.0
 """
 
-import os
-import sys
-
-from fastmcp import FastMCP
-from fastmcp.server.dependencies import get_http_headers
-from fastmcp.server.middleware import Middleware, MiddlewareContext
-from fastmcp.exceptions import PromptError, ToolError, ValidationError
-import httpx
-from mcp_utils import Bugzilla, mcp_log
 from typing import Any
 
-# sets the bugzilla server
-base_url = os.getenv("BUGZILLA_SERVER")
-# set the server port
-mcp_host = os.getenv("MCP_HOST", "127.0.0.1")
-mcp_port = int(os.getenv("MCP_PORT", "8000"))
+import httpx
+from fastmcp import FastMCP
+from fastmcp.exceptions import PromptError, ToolError, ValidationError
+from fastmcp.server.dependencies import get_http_headers
+from fastmcp.server.middleware import Middleware, MiddlewareContext
 
+from .mcp_utils import Bugzilla, mcp_log
+
+# The FastMCP instance is created globally, but `bz` (Bugzilla client) is
+# initialized in the middleware after `BUGZILLA_SERVER` and `api_key` are known.
 mcp = FastMCP("Bugzilla")
+
+# Global variables for Bugzilla client, set when middleware validates headers
+bz: Bugzilla
 
 
 # check for the required headers which contain the api_key header
@@ -38,6 +36,7 @@ class ValidateHeaders(Middleware):
         if "api_key" in headers.keys():
             global bz
             # all the tools & prompts will use this for making api calls
+            # base_url will be set by the start() function
             bz = Bugzilla(url=base_url, api_key=headers["api_key"])
 
             mcp_log.debug("api_key: Found")
@@ -74,13 +73,17 @@ def bug_comments(id: int, include_private_comments: bool = False):
     but can be explicitely requested
     """
 
-    mcp_log.info(f"[LLM-REQ] bug_comments(id={id}, include_private_comments={include_private_comments})")
+    mcp_log.info(
+        f"[LLM-REQ] bug_comments(id={id}, include_private_comments={include_private_comments})"
+    )
 
     try:
         all_comments = bz.bug_comments(id)
 
         if include_private_comments:
-            mcp_log.info(f"[LLM-RES] Returning {len(all_comments)} comments (including private)")
+            mcp_log.info(
+                f"[LLM-RES] Returning {len(all_comments)} comments (including private)"
+            )
             return all_comments
 
         public_comments = []
@@ -99,7 +102,9 @@ def bug_comments(id: int, include_private_comments: bool = False):
 @mcp.tool()
 def add_comment(bug_id: int, comment: str, is_private: bool = False) -> dict[str, int]:
     """Add a comment to a bug. It can optionally be private. If success, returns the created comment id."""
-    mcp_log.info(f"[LLM-REQ] add_comment(bug_id={bug_id}, comment='{comment}', is_private={is_private})")
+    mcp_log.info(
+        f"[LLM-REQ] add_comment(bug_id={bug_id}, comment='{comment}', is_private={is_private})"
+    )
     try:
         result = bz.add_comment(bug_id, comment, is_private)
         mcp_log.info(f"[LLM-RES] {result}")
@@ -117,8 +122,12 @@ def bugs_quicksearch(query: str, limit: int = 50, offset: int = 0) -> list[Any]:
     The user can query full details of each bug using the bug_info tool
     """
 
-    mcp_log.info(f"[LLM-REQ] bugs_quicksearch(query='{query}', limit={limit}, offset={offset})")
+    mcp_log.info(
+        f"[LLM-REQ] bugs_quicksearch(query='{query}', limit={limit}, offset={offset})"
+    )
 
+    # bz will be initialized in the middleware during request processing
+    # so we need to access its params via the global bz object
     tool_params = bz.params
     tool_params["quicksearch"] = query
     tool_params["limit"] = limit
@@ -169,15 +178,18 @@ def learn_quicksearch_syntax() -> str:
     mcp_log.info(f"[LLM-RES] Fetched {len(r.text)} chars of documentation")
     return r.text
 
+
 @mcp.tool()
 def server_url() -> str:
     """bugzilla server's base url"""
     return bz.base_url
 
+
 @mcp.tool()
 def bug_url(bug_id: int) -> str:
     """returns the bug url"""
     return f"{bz.base_url}/show_bug.cgi?id={bug_id}"
+
 
 @mcp.prompt()
 def summarize_bug_comments(id: int) -> str:
@@ -191,12 +203,11 @@ def summarize_bug_comments(id: int) -> str:
         summary_prompt = f"""
     You are an expert in summarizing bugzilla comments.
     Rules to follow:
-    - Comments are in JSON
     - Summary must be well structured & eye catching
     - Mention usernames & dates wherever relevant.
     - date field must be in human readable format
     - Usernames must be bold italic (***username***) dates must be bold (**date**)\n{comments}`;""".strip()
-        
+
         mcp_log.info(f"[LLM-RES] Generated prompt of length {len(summary_prompt)}")
         return summary_prompt
 
@@ -204,11 +215,20 @@ def summarize_bug_comments(id: int) -> str:
         raise PromptError(f"Summarize Comments Failed\nReason: {e}")
 
 
-# exit if the env variable is not set
-if base_url is None:
-    mcp_log.critical("env `BUGZILLA_SERVER` must be set. Exiting")
-    sys.exit(1)
+# Global variable to hold the base_url, set by the start() function
+base_url: str
 
-if __name__ == "__main__":
-    # start the MCP server
-    mcp.run(transport="http", host=mcp_host, port=mcp_port)
+
+def start(bugzilla_server: str, host: str, port: int):
+    """
+    Starts the FastMCP server for Bugzilla.
+
+    Args:
+        bugzilla_server: The base URL of the Bugzilla server.
+        host: The host address for the MCP server to listen on.
+        port: The port for the MCP server to listen on.
+    """
+    global base_url
+    base_url = bugzilla_server
+
+    mcp.run(transport="http", host=host, port=port)

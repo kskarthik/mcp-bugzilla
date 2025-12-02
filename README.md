@@ -48,28 +48,28 @@ Official docker repo: https://hub.docker.com/r/kskarthik/mcp-bugzilla/
     ```bash
     uv sync
     ```
-3.  **Run the server:**
+3.  **Run the server using the CLI:**
     ```bash
-    uv run server.py
+    mcp-bugzilla --bugzilla-server https://bugzilla.opensuse.org --host 127.0.0.1 --port 8000
     ```
     This will start the HTTP server at `http://127.0.0.1:8000/mcp/`.
 
-### Required Client HTTP Headers
+### Command-Line Interface (CLI)
 
--   `api_key`: Your Bugzilla user's API key. For instructions on how to generate an API key, please refer to the [official Bugzilla documentation on authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication).
+The `mcp-bugzilla` command provides the following options for running the server:
 
-### Environment Variables
+-   `--bugzilla-server <URL>`: (Required) Specifies the base URL of the Bugzilla server (e.g., `https://bugzilla.example.com`). This argument overrides the `BUGZILLA_SERVER` environment variable.
+-   `--host <ADDRESS>`: Sets the host address for the MCP server to listen on. Defaults to `127.0.0.1` or the `MCP_HOST` environment variable.
+-   `--port <PORT>`: Sets the port for the MCP server to listen on. Defaults to `8000` or the `MCP_PORT` environment variable.
 
-The server requires one critical environment variable to be set:
+### Authentication
 
--   `BUGZILLA_SERVER`: The base URL of your Bugzilla instance. If this variable is not set, the program will exit with a non-success status code.
+`api_key` HTTP header is required which is your Bugzilla user\'s API key. For instructions on how to generate an API key, please refer to the [official Bugzilla documentation on authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication).
 
-    **Example:**
-    ```bash
-    export BUGZILLA_SERVER='https://bugzilla.opensuse.org'
+**Example HTTP Header:**
     ```
-- `MCP_HOST`: Set custom host name. Default: `127.0.0.1`
-- `MCP_PORT`: Set custom port. Default `8000`
+    api_key: YOUR_API_KEY
+    ```
 
 ## License
 

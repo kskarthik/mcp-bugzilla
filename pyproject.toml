@@ -1,12 +1,12 @@
 [project]
 name = "mcp-bugzilla"
-version = "0.5.0"
+version = "0.6.0"
 description = "MCP server for Bugzilla"
 readme = "README.md"
 requires-python = "==3.13.*"
 
 dependencies = [
-    "fastmcp==2.12.5",
+    "fastmcp==2.13.1",
 ]
 
 [project.optional-dependencies]
@@ -14,5 +14,12 @@ dev = [
     "uv",
 ]
 
+[project.scripts]
+mcp-bugzilla = "mcp_bugzilla:main"
+
 [tool.setuptools]
 py-modules = ["mcp_utils", "server"]
+
+[build-system]
+requires = ["uv_build>=0.9.11,<0.10.0"]
+build-backend = "uv_build"
