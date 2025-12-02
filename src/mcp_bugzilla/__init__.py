@@ -42,7 +42,11 @@ def main():
         )
         sys.exit(1)
 
-    server.start(bugzilla_server=args.bugzilla_server, host=args.host, port=args.port)
+    server.cli_args["bugzilla_server"] = args.bugzilla_server
+    server.cli_args["host"] = args.host
+    server.cli_args["port"] = args.port
+
+    server.start()
 
 
 if __name__ == "__main__":
