@@ -30,6 +30,12 @@ def main():
         default=int(os.getenv("MCP_PORT", "8000")),
         help="Port for the MCP server to listen on, Defaults to 8000 or MCP_PORT environment variable.",
     )
+    parser.add_argument(
+        "--api-key-header",
+        type=str,
+        default=os.getenv("MCP_API_KEY_HEADER", "ApiKey"),
+        help="HTTP header for clients to send the Bugzilla API key. Defaults to 'ApiKey' or MCP_API_KEY_HEADER environment variable.",
+    )
 
     args = parser.parse_args()
 
@@ -45,6 +51,7 @@ def main():
     server.cli_args["bugzilla_server"] = args.bugzilla_server
     server.cli_args["host"] = args.host
     server.cli_args["port"] = args.port
+    server.cli_args["api_key_header"] = args.api_key_header
 
     server.start()
 

@@ -34,20 +34,21 @@ class ValidateHeaders(Middleware):
     async def on_message(self, context: MiddlewareContext, call_next):
         mcp_log.debug("api_key: Checking")
 
+        api_key_header = cli_args.get("api_key_header", "ApiKey")
         headers = get_http_headers()
-        if "api_key" in headers.keys():
+        api_key_value = headers.get(api_key_header.lower())
+
+        if api_key_value:
             global bz
             # all the tools & prompts will use this for making api calls
             # base_url will be set by the start() function
-            bz = Bugzilla(url=base_url, api_key=headers["api_key"])
+            bz = Bugzilla(url=base_url, api_key=api_key_value)
 
             mcp_log.debug("api_key: Found")
 
-            result = call_next(context)
-
-            return await result
+            return await call_next(context)
         else:
-            raise ValidationError("`api_key` is header is required")
+            raise ValidationError(f"`{api_key_header}` header is required")
 
 
 mcp.add_middleware(ValidateHeaders())

@@ -65,14 +65,17 @@ The `mcp-bugzilla` command provides the following options for running the server
 -   `--bugzilla-server <URL>`: (Required) Specifies the base URL of the Bugzilla server (e.g., `https://bugzilla.example.com`). This argument overrides the `BUGZILLA_SERVER` environment variable.
 -   `--host <ADDRESS>`: Sets the host address for the MCP server to listen on. Defaults to `127.0.0.1` or the `MCP_HOST` environment variable.
 -   `--port <PORT>`: Sets the port for the MCP server to listen on. Defaults to `8000` or the `MCP_PORT` environment variable.
+-   `--api-key-header <HEADER_NAME>`: Specifies the HTTP header that clients should use to send the Bugzilla API key. Defaults to `ApiKey` or the `MCP_API_KEY_HEADER` environment variable.
 
 ### Authentication
 
-`api_key` HTTP header is required which is your Bugzilla user\'s API key. For instructions on how to generate an API key, please refer to the [official Bugzilla documentation on authentication](https://bugzilla.readthedocs.io/en/latest/api/core/v1/general.html#authentication).
+An API key from a Bugzilla user is required for authentication. By default, the server expects this key in the `ApiKey` HTTP header. You can customize this header using the `--api-key-header` argument or the `MCP_API_KEY_HEADER` environment variable.
+
+For instructions on how to generate an API key, please refer to the official Bugzilla documentation on authentication.
 
 **Example HTTP Header:**
     ```
-    api_key: YOUR_API_KEY
+    ApiKey: YOUR_API_KEY
     ```
 
 ## License
